@@ -1,6 +1,14 @@
+
+''' 
+Author: Colby McClure
+Date: 2/25/2024
+Description: This program is a simple example of how to use the sklearn library to perform linear regression on the iris dataset.
+Program: mainFunc.py 
+Assignment: Homework 2 
+'''
+
 # Needed imports 
 from sklearn.datasets import load_iris
-#from ucimlrepo import fetch_ucirepo
 from sklearn.linear_model import LinearRegression 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
@@ -18,7 +26,10 @@ def converter(specie):
     else:
         return 'virginica'
 
+# Function to create and show the heat map related to the iris data set 
 def heatMap():
+
+    # Create the correlation matrix
     numeric_cols_df = df.select_dtypes(include=[np.number])
     cor_eff = numeric_cols_df.corr(method='pearson')
     plt.figure(figsize=(6, 6))
@@ -42,33 +53,57 @@ def pairPlot():
     # Display the graph 
     plt.show() 
 
-def lin_reg(x, y):
 
-    n = np.size(x)
+def linearReg(iris_df):
+   
+   # Drop the species column from the iris_df
+   df.drop('species', axis = 1, inplace = True)
+   target_df = pd.DataFrame(data = iris.target, columns = ['species'])
 
-    m_x, m_y = np.mean(x), np.mean(y)
+   # Concatenate the DataFrames
+   iris_df = pd.concat([iris_df, target_df], axis = 1)
 
-    SS_xy = np.sum(y * x) - n * m_y * m_x
-    SS_xx = np.sum(x * x) - n * m_x * m_x
+   # Split the data into training and testing sets
+   X = iris_df.drop(labels = 'petal length (cm)', axis = 1)
+   y = iris_df['petal length (cm)']
+   X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.8, random_state = 121)
+  
+   # Load the linear regression model
+   lr = LinearRegression()
 
-    beta = SS_xy / SS_xx
-    alpha = m_y - beta * m_x
+   # Fit the model to the training data
+   lr.fit(X_train, y_train)
 
-    return(alpha, beta)
+   # Make predictions using the testing set
+   lr.predict(X_test)
+   y_pred = lr.predict(X_test)
 
-def plot_lin_reg_model(x, y, alpha, beta):
-    plt.scatter(x, y, color = "m", marker = "o", s = 30)
+    # Print the results
+   print('LR beta/slope: ', lr.coef_)   
 
-    y_pred = alpha + beta * x
+   print('LR alpha/slope intercept Coefficient: ', lr.intercept_)
 
-    plt.plot(x, y_pred, color = "g")
+   print('Coefficient of determination: ', r2_score(y_test, y_pred))
 
-    plt.xlabel('x')
-    plt.ylabel('y')
+   print('Root Mean Squared Error: ', np.sqrt(mean_squared_error(y_test, y_pred)))
 
-    plt.show()
+   print('Mean Squared Error: ', mean_squared_error(y_test, y_pred))
 
-def linearReg():
+   iris_df.loc[16] 
+
+   # Create a dictionary of the data 
+   d = {'sepal length (cm)': [5.4], 'sepal width (cm)': [3.9], 'petal length (cm)': [1.3], 'petal width (cm)': [0.4], 'species': [0]}
+
+   # Create a DataFrame from the dictionary
+   pred_df = pd.DataFrame(data = d)
+   print(pred_df) 
+
+   # Make a prediction using the linear regression model
+   pred = lr.predict(X_test)
+    
+   # Output the predicted versus the actual petal length
+   print('Predicted Petal Length (cm): ', pred[0])
+   print('Actual Petal Length (cm): ', y_test.iloc[0]) 
    
 
 # Fetch dataset 
@@ -89,7 +124,6 @@ df = pd.concat([iris_df, target_df], axis = 1)
 # Change this to see the different visualizations
 mode = 3
 
-
 if(mode == 1):
     heatMap()
 
@@ -97,6 +131,6 @@ elif(mode == 2):
     pairPlot()
 
 elif(mode == 3):
-    linearReg()
+    linearReg(iris_df)
 
 
